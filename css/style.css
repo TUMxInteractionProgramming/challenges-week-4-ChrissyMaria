@@ -26,6 +26,9 @@ body {
 button, strong {
     text-transform: uppercase;
 }
+i {
+    font-size: 24px;
+}
 
 /* LAYOUT #5 #split */
 
@@ -129,9 +132,6 @@ li .channel-meta {
     top: 12px;
 }
 
-li img {
-    vertical-align: middle;
-}
 
 li.selected {
     color: #3F51B5;
@@ -183,6 +183,12 @@ li.selected {
     /* #5 #smileys #override button styles. We set the chat bar to appear like a tab-bar above. This overrides the tab bar's button scaling */
     width: auto;
     flex-grow: 0;
+}
+#chat-bar i {
+    float: right;
+    position: absolute;
+    right: 10px;
+    line-height: 72px;
 }
 
 #emojis {

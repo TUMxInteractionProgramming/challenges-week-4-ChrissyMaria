@@ -1,5 +1,16 @@
 /* #6 start the #external #action and say hello */
 console.log("App is alive");
+var currentChannel; 
+var currentLocation;
+
+currentLocation = {
+    longitude: 48.142894,
+    latitude: 11.505274,
+    what3words: "einbauen.gefallen.kobold"
+};
+console.log("Current location: ", currentLocation);
+
+
 
 /**
  * #6 #Switcher function for the #channels name in the right app bar
@@ -9,25 +20,26 @@ function switchChannel(channelName) {
     //Log the channel switch
     console.log("Tuning in to channel", channelName);
 
-    //Write the new channel to the right app bar
-    document.getElementById('channel-name').innerHTML = channelName;
+    //change global variable
+    currentChannel = channelName;
+    console.log(currentChannel);
 
-    //#6 change the #channel #location
-    document.getElementById('channel-location').innerHTML = 'by <a href="http://w3w.co/upgrading.never.helps" target="_blank"><strong>upgrading.never.helps</strong></a>';
+    //change html
+    document.getElementById('channel-name').innerHTML = channelName.name;
+    document.getElementById('channel-location').innerHTML = 'by <a href="http://w3w.co/"'+channelName.createdBy+'" target="_blank"><strong>'+channelName.createdBy+'</strong></a>';
 
-    /* #6 #liking channels on #click */
-    $('#channel-star').attr('src', 'http://ip.lfe.mw.tum.de/sections/star-o.png');
-
-    /* #6 #highlight the selected #channel.
-       This is inefficient (jQuery has to search all channel list items), but we'll change it later on */
+    channelName.starred ? $('#channel-star').removeClass('far fa-star').addClass('fas fa-star') : $('#channel-star').removeClass('fas fa-star').addClass('far fa-star');
+   
     $('#channels li').removeClass('selected');
-    $('#channels li:contains(' + channelName + ')').addClass('selected');
+    $('#channels li:contains(' + channelName.name + ')').addClass('selected');
 }
 
 /* #6 #liking a channel on #click */
 function star() {
-    $('#channel-star').attr('src', 'http://ip.lfe.mw.tum.de/sections/star.png');
+    $('#channel-star, .selected i:first-child').toggleClass('far fa-star fas fa-star');
 }
+
+
 
 /**
  * #6 #taptab selects the given tab
@@ -50,4 +62,99 @@ function selectTab(tabId) {
 function toggleEmojis() {
     /* $('#emojis').show(); // #show */
     $('#emojis').toggle(); // #toggle
+}
+
+/**
+ * Constructor: chat messages
+ */
+function Message(text) {
+    this.createdBy= currentLocation.what3words;
+    this.latitude= currentLocation.latitude;
+    this.longitude = currentLocation.longitude;
+    this.createdOn = new Date(Date.now());
+    this.expiresOn = new Date(this.createdOn.getTime() + (1000 /*sec*/ * 15 /*min*/ * 60));
+    this.text = text;
+    this.own = true;
+
+    console.log(this.createdOn);
+    console.log(this.expiresOn);
+}
+
+/**
+ * Sending messages
+ */
+function sendMessage(){
+    var mes = new Message($('#chat-bar input').val());
+    createMessageElement(mes);
+    $('#chat-bar input').val("");
+}
+
+/**
+ * Creating messages
+ */
+function createMessageElement(messageObj) {
+    var div = $('<div></div>');
+    div.addClass("message");
+    var headline = $('<h3></h3>');
+
+    var link = $('<a></a>');
+    link.attr('href', "http://w3w.co/"+messageObj.createdBy);
+    link.attr('target', "_blank");
+    var strongText = $('<strong></strong>');
+    strongText.text(messageObj.createdBy);
+    link.append(strongText);
+    headline.append(link);
+
+    //current Time
+    var options = { weekday: 'short', month: 'long', day: '2-digit', hour: 'numeric', minute:'numeric', hour12: false};
+    headline.append(messageObj.createdOn.toLocaleString('en-US', options));
+
+    //emphasized text
+    var emphasize = $('<em></em>');
+    var calculateExpiresIn;
+    var currentTime = new Date(Date.now());
+     calculateExpiresIn = Math.round((messageObj.expiresOn - currentTime)/1000/60);
+    emphasize.text(calculateExpiresIn + " min. left");
+    headline.append(emphasize);
+
+    //paragraph
+    var textMes = $('<p></p>');
+    textMes.text(messageObj.text);
+
+    //button
+    var extendTimeButton = $('<button></button>');
+    extendTimeButton.text("+5 min.");
+
+    div.append(headline);
+    div.append(textMes);
+    div.append(extendTimeButton);
+    $('#messages').append(div);
+}
+
+function listChannels(){
+    $('#channels ul').append(createChannelElement(yummy));
+    $('#channels ul').append(createChannelElement(sevenContinents));
+    $('#channels ul').append(createChannelElement(killerApp));
+    $('#channels ul').append(createChannelElement(firstPersonOnMars));
+    $('#channels ul').append(createChannelElement(octoberfest));
+
+    //select first channel 
+    $('#channels li:contains(' + sevenContinents.name + ')').addClass('selected');
+}
+
+function createChannelElement(channelObject) {
+    var li = $('<li></li>');
+    li.attr('onclick', 'switchChannel('+JSON.stringify(channelObject)+')');
+    li.text(channelObject.name);
+
+    var span = $('<span></span>');
+    span.addClass('channel-meta');
+    if(channelObject.starred) {
+        span.append('<i class = "fas fa-star"></i>');
+    } else {
+        span.append('<i class = "far fa-star"></i>');
+    }
+    span.append('<i class = "fas fa-chevron-right"></i>');
+    li.append(span);
+    return li;
 }
